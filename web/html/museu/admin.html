@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administração - Museu Virtual</title>
+    <!-- Inclusão do SortableJS para drag-and-drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 1000px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        h1, h2 { color: #333; }
+        .sala-section {
+            margin-top: 30px;
+            border-top: 2px solid #eee;
+            padding-top: 20px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            min-height: 50px; /* Para permitir soltar em grades vazias se necessário */
+        }
+        .item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            background: #fafafa;
+            cursor: move; /* Indica que é arrastável */
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .item:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .item.ghost {
+            opacity: 0.4;
+            background: #c8ebfb;
+        }
+        .item img {
+            max-width: 100%;
+            height: 100px;
+            object-fit: contain;
+            margin-bottom: 8px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            background: #eee;
+            pointer-events: none; /* Evita interferência no drag */
+        }
+        .field {
+            margin-bottom: 8px;
+            text-align: left;
+        }
+        .field label {
+            display: block;
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 2px;
+        }
+        .field input {
+            width: 100%;
+            padding: 4px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        input[type="file"] {
+            font-size: 11px;
+            margin-bottom: 8px;
+            width: 100%;
+        }
+        .actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+        }
+        button {
+            flex: 1;
+            color: white;
+            border: none;
+            padding: 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .btn-confirm { background-color: #5c67f2; }
+        .btn-confirm.waiting { background-color: #ffc107; color: #333; }
+        .btn-save-order { 
+            background-color: #28a745; 
+            padding: 12px 24px; 
+            font-size: 16px; 
+            margin-top: 20px;
+            font-weight: bold;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        button:hover { opacity: 0.9; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        #login-form {
+            max-width: 300px;
+            margin-top: 50px;
+        }
+        .hidden { display: none; }
+        .error { color: red; margin-bottom: 10px; }
+        .drag-handle {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(0,0,0,0.1);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 10px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+<div id="login-container" class="container">
+    <h1>Login Admin</h1>
+    <div id="login-error" class="error"></div>
+    <form id="login-form">
+        <div class="field">
+            <label>Usuário:</label>
+            <input type="text" id="username">
+        </div>
+        <div class="field">
+            <label>Senha:</label>
+            <input type="password" id="password">
+        </div>
+        <button type="submit" class="btn-upload" style="width: 100%; margin-top: 10px;">Entrar</button>
+    </form>
+</div>
+
+<div id="admin-panel" class="container hidden">
+    <h1>Painel de Controle - Museu</h1>
+    <p>Gerencie as fotos e informações das obras agrupadas por sala.</p>
+    
+    <div id="salas-container">
+        <!-- Gerado via JS -->
+    </div>
+
+    <button id="btn-save-order" class="btn-save-order hidden" onclick="saveNewOrder()">Salvar Nova Ordem das Obras</button>
+</div>
+
+<script>
+    const loginContainer = document.getElementById('login-container');
+    const adminPanel = document.getElementById('admin-panel');
+    const loginForm = document.getElementById('login-form');
+    const loginError = document.getElementById('login-error');
+    const salasContainer = document.getElementById('salas-container');
+
+    // Ordem de aparição das fotos por sala (IDs devem seguir a ordem física do museu)
+    const distribuicao = [
+        { nome: "Sala 1", ids: [1, 2, 3, 4] },
+        { nome: "Sala 2", ids: [5, 6, 7, 8] },
+        { nome: "Sala 3", ids: [9, 10, 11, 12] },
+        { nome: "Sala 4", ids: [13, 14, 15, 16] },
+        { nome: "Sala 5", ids: [17, 18, 19, 20, 21, 22] },
+        { nome: "Sala 6", ids: [23, 24, 25, 26] },
+        { nome: "Sala 7", ids: [27, 28, 29, 30] },
+        { nome: "Sala 8 & Fundo", ids: [31, 32, 33] }
+    ];
+
+    let dadosObras = [];
+
+    loginForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const user = document.getElementById('username').value;
+        const pass = document.getElementById('password').value;
+
+        const resp = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user, pass })
+        });
+
+        if (resp.ok) {
+            showAdmin();
+        } else {
+            loginError.innerText = 'Usuário ou senha inválidos';
+        }
+    };
+
+    async function showAdmin() {
+        loginContainer.classList.add('hidden');
+        adminPanel.classList.remove('hidden');
+        document.getElementById('btn-save-order').classList.remove('hidden');
+        await loadData();
+    }
+
+    async function loadData() {
+        const resp = await fetch('/obras');
+        dadosObras = await resp.json();
+        renderSalas();
+        initSortable();
+    }
+
+    function initSortable() {
+        const grids = document.querySelectorAll('.grid');
+        grids.forEach(grid => {
+            new Sortable(grid, {
+                group: 'shared', // Permite mover entre salas
+                animation: 150,
+                ghostClass: 'ghost',
+                onEnd: function() {
+                    console.log('Ordem alterada');
+                }
+            });
+        });
+    }
+
+    function renderSalas() {
+        salasContainer.innerHTML = '';
+        distribuicao.forEach(sala => {
+            const section = document.createElement('div');
+            section.className = 'sala-section';
+            section.innerHTML = `<h2>${sala.nome}</h2>`;
+            
+            const grid = document.createElement('div');
+            grid.className = 'grid';
+            
+            sala.ids.forEach(id => {
+                const obra = dadosObras.find(o => o.id === id);
+                if (!obra) return;
+
+                const item = document.createElement('div');
+                item.className = 'item';
+                item.dataset.id = id; // ID original para rastreamento
+                item.innerHTML = `
+                    <div class="drag-handle">::</div>
+                    <h3>Tela ${id}</h3>
+                    <img src="tela${id}.jpg?t=${new Date().getTime()}" alt="Tela ${id}" id="img-${id}">
+                    
+                    <div class="field">
+                        <label>Título:</label>
+                        <input type="text" id="titulo-${id}" value="${obra.titulo}">
+                    </div>
+                    <div class="field">
+                        <label>Autor:</label>
+                        <input type="text" id="autor-${id}" value="${obra.autor}">
+                    </div>
+                    <div class="field">
+                        <label>Técnica:</label>
+                        <input type="text" id="tecnica-${id}" value="${obra.tecnica}">
+                    </div>
+                    
+                    <input type="file" id="file-${id}" accept="image/jpeg">
+                    
+                    <div class="actions">
+                        <button class="btn-confirm" id="btn-confirm-${id}" onclick="handleConfirm(${id})">Salvar Texto/Img</button>
+                    </div>
+                `;
+                grid.appendChild(item);
+            });
+            
+            section.appendChild(grid);
+            salasContainer.appendChild(section);
+        });
+    }
+
+    async function saveNewOrder() {
+        const btn = document.getElementById('btn-save-order');
+        btn.disabled = true;
+        btn.innerText = "Salvando Nova Ordem...";
+
+        // Coleta todos os IDs na nova ordem
+        const allItems = document.querySelectorAll('.item');
+        const newOrderIds = Array.from(allItems).map(item => parseInt(item.dataset.id));
+
+        if (newOrderIds.length !== 33) {
+            alert("Erro: Número de quadros incorreto (" + newOrderIds.length + "). Devem ser 33.");
+            btn.disabled = false;
+            btn.innerText = "Salvar Nova Ordem das Obras";
+            return;
+        }
+
+        try {
+            const resp = await fetch('/reorder-obras', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: newOrderIds })
+            });
+
+            if (resp.ok) {
+                alert("Nova ordem salva com sucesso! A página será recarregada.");
+                location.reload();
+            } else {
+                const err = await resp.text();
+                alert("Erro ao salvar ordem: " + err);
+            }
+        } catch (e) {
+            alert("Erro na requisição: " + e.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Salvar Nova Ordem das Obras";
+        }
+    }
+
+    const confirmStates = {};
+
+    function handleConfirm(id) {
+        const btn = document.getElementById(`btn-confirm-${id}`);
+        
+        if (!confirmStates[id]) {
+            // Primeiro clique
+            confirmStates[id] = true;
+            btn.innerText = "Clique para Confirmar";
+            btn.classList.add('waiting');
+            
+            // Reseta após 3 segundos se não clicar de novo
+            setTimeout(() => {
+                if (confirmStates[id]) {
+                    delete confirmStates[id];
+                    btn.innerText = "Salvar Alterações";
+                    btn.classList.remove('waiting');
+                }
+            }, 3000);
+        } else {
+            // Segundo clique
+            delete confirmStates[id];
+            btn.innerText = "Salvando...";
+            btn.classList.remove('waiting');
+            btn.disabled = true;
+            processAllChanges(id).finally(() => {
+                btn.innerText = "Salvar Alterações";
+                btn.disabled = false;
+            });
+        }
+    }
+
+    async function processAllChanges(id) {
+        // 1. Salvar Metadados
+        const titulo = document.getElementById(`titulo-${id}`).value;
+        const autor = document.getElementById(`autor-${id}`).value;
+        const tecnica = document.getElementById(`tecnica-${id}`).value;
+
+        const respText = await fetch('/update-obra', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, titulo, autor, tecnica })
+        });
+
+        // 2. Upload de Imagem (se houver)
+        const fileInput = document.getElementById(`file-${id}`);
+        let uploadSuccess = true;
+        if (fileInput.files[0]) {
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+            formData.append('id', id);
+
+            const respImg = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (respImg.ok) {
+                const img = document.getElementById(`img-${id}`);
+                img.src = `tela${id}.jpg?t=${new Date().getTime()}`;
+                fileInput.value = ''; // Limpa o input após sucesso
+            } else {
+                uploadSuccess = false;
+                const errorText = await respImg.text();
+                alert(`Erro no upload da imagem ${id}: ${errorText}`);
+            }
+        }
+
+        if (!respText.ok) {
+            alert(`Erro ao salvar textos da Tela ${id}`);
+        }
+    }
+
+    // Verifica se já está logado
+    fetch('/check-session').then(resp => {
+        if (resp.ok) showAdmin();
+    });
+</script>
+
+</body>
+</html>
