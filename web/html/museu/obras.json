@@ -121,19 +121,19 @@
   },
   {
     "id": 21,
-    "titulo": "26/jul/2026 - 2",
-    "autor": "",
-    "tecnica": ""
-  },
-  {
-    "id": 22,
     "titulo": "26/jul/2026 - 3",
     "autor": "",
     "tecnica": ""
   },
   {
+    "id": 22,
+    "titulo": "31/jul/2026",
+    "autor": "",
+    "tecnica": ""
+  },
+  {
     "id": 23,
-    "titulo": "28/jul/2026 - 1",
+    "titulo": "31/jul/2026",
     "autor": "",
     "tecnica": ""
   },
@@ -145,7 +145,7 @@
   },
   {
     "id": 25,
-    "titulo": "31/jul/2026 - 1",
+    "titulo": "28/jul/2026 - 1",
     "autor": "",
     "tecnica": ""
   },
@@ -157,37 +157,37 @@
   },
   {
     "id": 27,
-    "titulo": "31/jul/2026 - 3",
+    "titulo": "26/jul/2026 - 2",
     "autor": "",
     "tecnica": ""
   },
   {
     "id": 28,
-    "titulo": "31/jul/2026 - 4",
-    "autor": "",
-    "tecnica": ""
-  },
-  {
-    "id": 29,
-    "titulo": "31/jul/2026 - 5",
-    "autor": "",
-    "tecnica": " "
-  },
-  {
-    "id": 30,
     "titulo": "31/jul/2026 - 6",
     "autor": "",
     "tecnica": ""
   },
   {
+    "id": 29,
+    "titulo": "31/jul/2026 - 3",
+    "autor": "",
+    "tecnica": ""
+  },
+  {
+    "id": 30,
+    "titulo": "31/jul/2026 - 5",
+    "autor": "",
+    "tecnica": " "
+  },
+  {
     "id": 31,
-    "titulo": "31/jul/2026",
+    "titulo": "31/jul/2026 - 4",
     "autor": "",
     "tecnica": ""
   },
   {
     "id": 32,
-    "titulo": "31/jul/2026",
+    "titulo": "31/jul/2026 - 1",
     "autor": "",
     "tecnica": ""
   },

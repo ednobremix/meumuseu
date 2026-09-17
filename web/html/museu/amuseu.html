@@ -7,7 +7,7 @@
 
     <meta
             name="viewport"
-            content="width=device-width, initial-scale=1.0"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     >
 
     <title>Museu Virtual 3D</title>
@@ -44,6 +44,7 @@
                     Helvetica,
                     sans-serif;
 
+            touch-action: manipulation;
         }
 
 
@@ -215,7 +216,9 @@
             position: fixed;
             inset: 0;
             z-index: 200000;
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(0, 0, 0, 0.98);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -232,12 +235,13 @@
 
         #overlay img {
             max-width: 90vw;
-            max-height: 70vh;
-            border: 5px solid #333;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
-            margin-bottom: 20px;
+            max-height: 75vh;
+            border: 3px solid #d9d5ce;
+            box-shadow: 0 0 60px rgba(0,0,0,0.8);
+            margin-bottom: 25px;
             object-fit: contain;
         }
+
 
         #overlay-info {
             text-align: center;
@@ -272,6 +276,50 @@
 
         #close-overlay:hover {
             color: #d9d5ce;
+        }
+
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            font-size: 60px;
+            padding: 20px;
+            cursor: pointer;
+            z-index: 200001;
+            transition: background 0.3s;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 120px;
+            user-select: none;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        #overlay-prev {
+            left: 20px;
+        }
+
+        #overlay-next {
+            right: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .nav-btn {
+                font-size: 40px;
+                width: 50px;
+                height: 80px;
+                padding: 10px;
+            }
+            #overlay-prev { left: 5px; }
+            #overlay-next { right: 5px; }
         }
 
         /* CHECKLIST DE OBRAS VISUALIZADAS */
@@ -408,34 +456,37 @@
             width: 150px;
             height: 150px;
             pointer-events: none; /* Deixa cliques passarem pelo container */
+            touch-action: none;
         }
 
         .mobile-btn {
             position: absolute;
-            width: 45px;
-            height: 45px;
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.5);
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
             color: white;
-            font-size: 20px;
+            font-size: 24px;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
-            transition: background 0.2s;
+            transition: all 0.2s;
             pointer-events: auto; /* Reabilita para os botões */
+            touch-action: manipulation;
         }
 
         .mobile-btn:active {
-            background: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.6);
+            transform: scale(1.1);
         }
 
-        #btn-up { top: 0; left: 52.5px; }
-        #btn-down { bottom: 0; left: 52.5px; }
-        #btn-left { top: 52.5px; left: 0; }
-        #btn-right { top: 52.5px; right: 0; }
+        #btn-up { top: 0; left: 50px; }
+        #btn-down { bottom: 0; left: 50px; }
+        #btn-left { top: 50px; left: 0; }
+        #btn-right { top: 50px; right: 0; }
 
         @media (max-width: 768px) {
             #mobile-controls {
@@ -525,6 +576,7 @@
     <strong>VISITA VIRTUAL</strong><br>
 
     W A S D ou setas — caminhar<br>
+    Clique na obra — destaque<br>
 
 </div>
 
@@ -541,6 +593,8 @@
         <p id="overlay-author">Autor da Obra</p>
         <p id="overlay-tech" style="font-size: 16px; color: #888; margin-top: -10px;">Técnica</p>
     </div>
+    <button id="overlay-prev" class="nav-btn">&lsaquo;</button>
+    <button id="overlay-next" class="nav-btn">&rsaquo;</button>
 </div>
 
 <!-- SISTEMA DE CHECKLIST -->
@@ -576,6 +630,7 @@
 <a-scene
         id="museum"
         background="color: #d9d5ce"
+        embedded
         renderer="
             antialias: true;
             colorManagement: true;
@@ -795,12 +850,12 @@
             rotation="-90 0 0"
             width="18"
             height="130"
-            color="#332211"
+            color="#dcdcdc"
             material="
-                roughness: 0.9;
-                metalness: 0.1;
+                roughness: 0.7;
+                metalness: 0.2;
                 src: url(https://cdn.aframe.io/a-painter/images/floor.jpg);
-                repeat: 8 55
+                repeat: 20 100
             "
     ></a-plane>
 
@@ -848,100 +903,8 @@
 
 
     <!-- =================================================
-         PAREDES DIVISÓRIAS
-
-         As paredes têm abertura central.
+         PAREDES DIVISÓRIAS REMOVIDAS
          ================================================= -->
-
-
-    <!-- Divisória 1 - esquerda -->
-
-    <a-box
-            position="-6.8 4.375 -15"
-            width="4.4"
-            height="8.75"
-            depth="0.25"
-            color="#e5e1da"
-    ></a-box>
-
-
-    <!-- Divisória 1 - direita -->
-
-    <a-box
-            position="6.8 4.375 -15"
-            width="4.4"
-            height="8.75"
-            depth="0.25"
-            color="#e5e1da"
-    ></a-box>
-
-
-
-    <!-- Divisória 2 - esquerda -->
-
-    <a-box
-            position="-6.8 4.375 -30"
-            width="4.4"
-            height="8.75"
-            depth="0.25"
-            color="#e5e1da"
-    ></a-box>
-
-
-    <!-- Divisória 2 - direita -->
-
-    <a-box
-            position="6.8 4.375 -30"
-            width="4.4"
-            height="8.75"
-            depth="0.25"
-            color="#e5e1da"
-    ></a-box>
-
-
-
-    <!-- Divisória 3 - esquerda -->
-
-    <a-box
-            position="-6.8 4.375 -45"
-            width="4.4"
-            height="8.75"
-            depth="0.25"
-            color="#e5e1da"
-    ></a-box>
-
-
-    <!-- Divisória 3 - direita -->
-
-    <a-box
-            position="6.8 4.375 -45"
-            width="4.4"
-            height="8.75"
-            depth="0.25"
-            color="#e5e1da"
-    ></a-box>
-
-
-
-    <!-- Divisória 4 - esquerda -->
-    <a-box position="-6.8 4.375 -60" width="4.4" height="8.75" depth="0.25" color="#e5e1da"></a-box>
-    <!-- Divisória 4 - direita -->
-    <a-box position="6.8 4.375 -60" width="4.4" height="8.75" depth="0.25" color="#e5e1da"></a-box>
-
-    <!-- Divisória 5 - esquerda -->
-    <a-box position="-6.8 4.375 -75" width="4.4" height="8.75" depth="0.25" color="#e5e1da"></a-box>
-    <!-- Divisória 5 - direita -->
-    <a-box position="6.8 4.375 -75" width="4.4" height="8.75" depth="0.25" color="#e5e1da"></a-box>
-
-    <!-- Divisória 6 - esquerda -->
-    <a-box position="-6.8 4.375 -90" width="4.4" height="8.75" depth="0.25" color="#e5e1da"></a-box>
-    <!-- Divisória 6 - direita -->
-    <a-box position="6.8 4.375 -90" width="4.4" height="8.75" depth="0.25" color="#e5e1da"></a-box>
-
-    <!-- Divisória 7 - esquerda -->
-    <a-box position="-6.8 4.375 -105" width="4.4" height="8.75" depth="0.25" color="#e5e1da"></a-box>
-    <!-- Divisória 7 - direita -->
-    <a-box position="6.8 4.375 -105" width="4.4" height="8.75" depth="0.25" color="#e5e1da"></a-box>
 
 
 
@@ -981,61 +944,188 @@
 
 
     <!-- =================================================
-         ENTRADA
+         ENTRADA (PAREDE E LAYOUT)
          ================================================= -->
 
+    <!-- Parede Frontal Esquerda (Externa) -->
+    <a-box
+            position="-8 4.375 3"
+            width="4.0"
+            height="8.75"
+            depth="0.25"
+            color="#f0ede9"
+    ></a-box>
+
+    <!-- Parede Frontal Direita (Externa) -->
+    <a-box
+            position="8 4.375 3"
+            width="4.0"
+            height="8.75"
+            depth="0.25"
+            color="#f0ede9"
+    ></a-box>
+
+    <!-- Colunas Laterais Largas (Conforme Foto) -->
+    <a-box
+            position="-5 4.375 3"
+            width="2.0"
+            height="8.75"
+            depth="0.6"
+            color="#f0ede9"
+    ></a-box>
+    <a-box
+            position="5 4.375 3"
+            width="2.0"
+            height="8.75"
+            depth="0.6"
+            color="#f0ede9"
+    ></a-box>
+
+    <!-- Paredes Chanfradas (45 graus) -->
+    <a-box
+            position="-3.3 4.375 2.3"
+            rotation="0 45 0"
+            width="2.0"
+            height="8.75"
+            depth="0.25"
+            color="#e5e1da"
+    ></a-box>
+    <a-box
+            position="3.3 4.375 2.3"
+            rotation="0 -45 0"
+            width="2.0"
+            height="8.75"
+            depth="0.25"
+            color="#e5e1da"
+    ></a-box>
+
+    <!-- Viga Superior da Entrada -->
+    <a-box
+            position="0 7.375 3"
+            width="8.0"
+            height="2.75"
+            depth="0.25"
+            color="#f0ede9"
+    ></a-box>
+
+    <!-- Viga Escura do Nome (Conforme Imagem) -->
+    <a-box
+            position="0 6.6 3.3"
+            width="8.0"
+            height="1.4"
+            depth="0.1"
+            color="#1a1714"
+    ></a-box>
+
+    <!-- Texto na Viga removido (agora nas portas) -->
+    <!--
     <a-text
-            value="MUSEU"
-            position="0 5.2 2.7"
+            value="MUSEU MANUEL A NOBRE"
+            position="0 6.6 3.36"
             align="center"
-            color="#282522"
+            color="#d4af37"
             width="7"
+            font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"
+            letter-spacing="15"
     ></a-text>
+    -->
 
+    <!-- Portas de Vidro Abertas -->
+    <a-entity position="-2 0 1.6" rotation="0 80 0">
+        <!-- Moldura da Porta -->
+        <a-box width="2.1" height="6.1" depth="0.1" position="1 3.05 0" color="#3d2b1f" material="roughness: 0.8; metalness: 0.2; src: url(https://cdn.aframe.io/a-painter/images/floor.jpg); repeat: 1 3"></a-box>
+        <!-- Texto na Porta (Esquerda) -->
+        <a-text value="MUSEU" position="1 4 0.06" align="center" color="#d4af37" width="6" font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-text>
+        <a-text value="MANUEL" position="1 3 0.06" align="center" color="#d4af37" width="5" font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-text>
+        
+        <a-box width="0.1" height="6.1" depth="0.15" position="0 3.05 0" color="#1a1714"></a-box>
+        <a-box width="0.1" height="6.1" depth="0.15" position="2 3.05 0" color="#1a1714"></a-box>
+        <a-box width="2.1" height="0.1" depth="0.15" position="1 6.1 0" color="#1a1714"></a-box>
+        <a-box width="2.1" height="0.1" depth="0.15" position="1 0 0" color="#1a1714"></a-box>
+        <!-- Puxador -->
+        <a-cylinder radius="0.02" height="1.5" position="1.8 1.5 0.1" color="#1a1714"></a-cylinder>
+    </a-entity>
 
-    <a-text
-            value="ARTE E INSPIRAÇÃO"
-            position="0 4.55 2.7"
-            align="center"
-            color="#39342f"
-            width="5"
-    ></a-text>
+    <a-entity position="2 0 1.6" rotation="0 -80 0">
+        <!-- Moldura da Porta -->
+        <a-box width="2.1" height="6.1" depth="0.1" position="-1 3.05 0" color="#3d2b1f" material="roughness: 0.8; metalness: 0.2; src: url(https://cdn.aframe.io/a-painter/images/floor.jpg); repeat: 1 3"></a-box>
+        <!-- Texto na Porta (Direita) -->
+        <a-text value="A" position="-1 4 0.06" align="center" color="#d4af37" width="8" font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-text>
+        <a-text value="NOBRE" position="-1 3 0.06" align="center" color="#d4af37" width="6" font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-text>
+        
+        <a-box width="0.1" height="6.1" depth="0.15" position="0 3.05 0" color="#1a1714"></a-box>
+        <a-box width="0.1" height="6.1" depth="0.15" position="-2 3.05 0" color="#1a1714"></a-box>
+        <a-box width="2.1" height="0.1" depth="0.15" position="-1 6.1 0" color="#1a1714"></a-box>
+        <a-box width="2.1" height="0.1" depth="0.15" position="-1 0 0" color="#1a1714"></a-box>
+        <!-- Puxador -->
+        <a-cylinder radius="0.02" height="1.5" position="-1.8 1.5 0.1" color="#1a1714"></a-cylinder>
+    </a-entity>
 
+    <!-- Tapete Vermelho (Entrada) -->
+    <a-plane
+            position="0 0.05 5"
+            rotation="-90 0 0"
+            width="3.2"
+            height="12"
+            color="#9e1b1b"
+            material="roughness: 0.9"
+    ></a-plane>
 
-    <a-text
-            value="EXPOSIÇÃO SET-26"
-            position="0 3.95 2.7"
-            align="center"
-            color="#6d655c"
-            width="3.8"
-    ></a-text>
+    <!-- Vasos de Plantas (Decorativos - Fino e Elegante) -->
+    <a-entity position="-3.5 0 3.8">
+        <!-- Vaso Cônico Invertido -->
+        <a-cone radius-bottom="0.25" radius-top="0.45" height="2.2" color="#1a1a1a" position="0 1.1 0"></a-cone>
+        <!-- Planta com Folhagem -->
+        <a-entity position="0 2.2 0">
+            <a-sphere radius="0.5" color="#2d4a22" scale="1 1.2 1"></a-sphere>
+            <a-sphere radius="0.4" color="#3a5a2d" position="0.2 0.3 0.1" scale="0.8 1 0.8"></a-sphere>
+            <a-sphere radius="0.4" color="#3a5a2d" position="-0.2 0.3 -0.1" scale="0.8 1 0.8"></a-sphere>
+        </a-entity>
+    </a-entity>
 
+    <a-entity position="3.5 0 3.8">
+        <!-- Vaso Cônico Invertido -->
+        <a-cone radius-bottom="0.25" radius-top="0.45" height="2.2" color="#1a1a1a" position="0 1.1 0"></a-cone>
+        <!-- Planta com Folhagem -->
+        <a-entity position="0 2.2 0">
+            <a-sphere radius="0.5" color="#2d4a22" scale="1 1.2 1"></a-sphere>
+            <a-sphere radius="0.4" color="#3a5a2d" position="0.2 0.3 0.1" scale="0.8 1 0.8"></a-sphere>
+            <a-sphere radius="0.4" color="#3a5a2d" position="-0.2 0.3 -0.1" scale="0.8 1 0.8"></a-sphere>
+        </a-entity>
+    </a-entity>
 
+    <!-- Iluminação Quente nos Vasos (Downlight) -->
+    <a-light type="spot" position="-3.5 5 3.8" rotation="-90 0 0" color="#fff0d4" intensity="1.2" angle="30" distance="8"></a-light>
+    <a-light type="spot" position="3.5 5 3.8" rotation="-90 0 0" color="#fff0d4" intensity="1.2" angle="30" distance="8"></a-light>
+    <a-light type="point" position="-3.5 0.5 4" color="#fff0d4" intensity="0.5" distance="3"></a-light>
+    <a-light type="point" position="3.5 0.5 4" color="#fff0d4" intensity="0.5" distance="3"></a-light>
 
-    <!-- =================================================
-         COLUNAS DA ENTRADA
-         ================================================= -->
-
-    <a-cylinder
-            position="-6.5 4.375 2.7"
-            radius="0.32"
-            height="8.75"
-            color="#d0cbc3"
-    ></a-cylinder>
-
-
-    <a-cylinder
-            position="6.5 4.375 2.7"
-            radius="0.32"
-            height="8.75"
-            color="#d0cbc3"
-    ></a-cylinder>
+    <!-- Iluminação da Fachada (Suave e Ampla) -->
+    <a-light 
+            type="spot" 
+            position="0 12 15" 
+            rotation="-35 0 0" 
+            color="#fff" 
+            intensity="1.5" 
+            angle="50" 
+            penumbra="0.8" 
+            distance="30"
+    ></a-light>
 
 
 
     <!-- =================================================
          ILUMINAÇÃO DO MUSEU
          ================================================= -->
+
+    <a-light
+            type="point"
+            position="0 5.8 4"
+            color="#ffe5bf"
+            intensity="1.5"
+            distance="10"
+    ></a-light>
+
 
     <a-light
             type="point"
@@ -1105,53 +1195,53 @@
          ================================================= -->
 
     <!-- SALA 1 -->
-    <a-light type="spot" position="-7 6 -4" rotation="-55 0 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="7 6 -4" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="-7 6 -11" rotation="-55 0 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="7 6 -11" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
+    <a-light type="spot" position="-6 7 -4" rotation="-55 0 0" color="#fff0d4" intensity="2.5" angle="45" penumbra="0.6" distance="15"></a-light>
+    <a-light type="spot" position="6 7 -4" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
+    <a-light type="spot" position="-6 7 -11" rotation="-55 0 0" color="#fff0d4" intensity="2.5" angle="45" penumbra="0.6" distance="15"></a-light>
+    <a-light type="spot" position="6 7 -11" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
 
     <!-- SALA 2 -->
-    <a-light type="spot" position="-7 6 -19" rotation="-55 0 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="7 6 -19" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="-7 6 -26" rotation="-55 0 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="7 6 -26" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
+    <a-light type="spot" position="-6 7 -19" rotation="-55 0 0" color="#fff0d4" intensity="2.5" angle="45" penumbra="0.6" distance="15"></a-light>
+    <a-light type="spot" position="6 7 -19" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
+    <a-light type="spot" position="-6 7 -26" rotation="-55 0 0" color="#fff0d4" intensity="2.5" angle="45" penumbra="0.6" distance="15"></a-light>
+    <a-light type="spot" position="6 7 -26" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
 
     <!-- SALA 3 -->
-    <a-light type="spot" position="-7 6 -34" rotation="-55 0 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="7 6 -34" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="-7 6 -41" rotation="-55 0 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="7 6 -41" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
+    <a-light type="spot" position="-6 7 -34" rotation="-55 0 0" color="#fff0d4" intensity="2.5" angle="45" penumbra="0.6" distance="15"></a-light>
+    <a-light type="spot" position="6 7 -34" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
+    <a-light type="spot" position="-6 7 -41" rotation="-55 0 0" color="#fff0d4" intensity="2.5" angle="45" penumbra="0.6" distance="15"></a-light>
+    <a-light type="spot" position="6 7 -41" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
 
     <!-- SALA 4 -->
-    <a-light type="spot" position="-7 6 -49" rotation="-55 0 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="7 6 -49" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="-7 6 -56" rotation="-55 0 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="7 6 -56" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
+    <a-light type="spot" position="-6 7 -49" rotation="-55 0 0" color="#fff0d4" intensity="2.5" angle="45" penumbra="0.6" distance="15"></a-light>
+    <a-light type="spot" position="6 7 -49" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
+    <a-light type="spot" position="-6 7 -56" rotation="-55 0 0" color="#fff0d4" intensity="2.5" angle="45" penumbra="0.6" distance="15"></a-light>
+    <a-light type="spot" position="6 7 -56" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
 
     <!-- SALA 5 -->
-    <a-light type="spot" position="-7 6 -64" rotation="-55 0 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="7 6 -64" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="-7 6 -71" rotation="-55 0 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="7 6 -71" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
+    <a-light type="spot" position="-6 7 -64" rotation="-55 0 0" color="#fff0d4" intensity="2.5" angle="45" penumbra="0.6" distance="15"></a-light>
+    <a-light type="spot" position="6 7 -64" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
+    <a-light type="spot" position="-6 7 -71" rotation="-55 0 0" color="#fff0d4" intensity="2.5" angle="45" penumbra="0.6" distance="15"></a-light>
+    <a-light type="spot" position="6 7 -71" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
 
     <!-- SALA 6 -->
-    <a-light type="spot" position="-7 6 -79" rotation="-55 0 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="7 6 -79" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="-7 6 -86" rotation="-55 0 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="7 6 -86" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
+    <a-light type="spot" position="-6 7 -79" rotation="-55 0 0" color="#fff0d4" intensity="2.5" angle="45" penumbra="0.6" distance="15"></a-light>
+    <a-light type="spot" position="6 7 -79" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
+    <a-light type="spot" position="-6 7 -86" rotation="-55 0 0" color="#fff0d4" intensity="2.5" angle="45" penumbra="0.6" distance="15"></a-light>
+    <a-light type="spot" position="6 7 -86" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
 
     <!-- SALA 7 -->
-    <a-light type="spot" position="-7 6 -94" rotation="-55 0 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="7 6 -94" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="-7 6 -101" rotation="-55 0 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="7 6 -101" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
+    <a-light type="spot" position="-6 7 -94" rotation="-55 0 0" color="#fff0d4" intensity="2.5" angle="45" penumbra="0.6" distance="15"></a-light>
+    <a-light type="spot" position="6 7 -94" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
+    <a-light type="spot" position="-6 7 -101" rotation="-55 0 0" color="#fff0d4" intensity="2.5" angle="45" penumbra="0.6" distance="15"></a-light>
+    <a-light type="spot" position="6 7 -101" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
 
     <!-- SALA 8 -->
-    <a-light type="spot" position="-7 6 -109" rotation="-55 0 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="7 6 -109" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="-7 6 -116" rotation="-55 0 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="7 6 -116" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
-    <a-light type="spot" position="0 6 -123" rotation="-55 0 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
+    <a-light type="spot" position="-6 7 -109" rotation="-55 0 0" color="#fff0d4" intensity="2.5" angle="45" penumbra="0.6" distance="15"></a-light>
+    <a-light type="spot" position="6 7 -109" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
+    <a-light type="spot" position="-6 7 -116" rotation="-55 0 0" color="#fff0d4" intensity="2.5" angle="45" penumbra="0.6" distance="15"></a-light>
+    <a-light type="spot" position="6 7 -116" rotation="-55 180 0" color="#fff0d4" intensity="2.2" angle="35" penumbra="0.6" distance="12"></a-light>
+    <a-light type="spot" position="0 7 -121" rotation="-55 0 0" color="#fff0d4" intensity="2.5" angle="45" penumbra="0.6" distance="15"></a-light>
 
 
 
@@ -1163,7 +1253,7 @@
 
     <a-entity
             id="player"
-            position="0 1.7 4"
+            position="0 1.7 8"
     >
 
         <a-camera
@@ -1224,14 +1314,27 @@
                ESPERA O A-FRAME TERMINAR
                ================================================= */
 
-            scene.addEventListener(
-                "loaded",
-                function () {
+            function finalizarCarregamento() {
+                const loading = document.getElementById("loading");
+                if (loading) {
+                    loading.style.opacity = "0";
+                    setTimeout(function () {
+                        loading.style.display = "none";
+                    }, 700);
+                }
+            }
 
+            // Fallback de segurança: se em 10 segundos não carregar, remove o loading
+            setTimeout(finalizarCarregamento, 10000);
 
-                    console.log(
-                        "Museu carregado."
-                    );
+            if (scene.hasLoaded) {
+                configurarMuseu();
+            } else {
+                scene.addEventListener("loaded", configurarMuseu);
+            }
+
+            function configurarMuseu() {
+                console.log("Museu carregado.");
 
 
 
@@ -1279,143 +1382,89 @@
                        ========================================= */
 
                     let obras = [];
+                    const definicoesQuadros = [];
+                    const quadrosCriados = new Set();
 
                     async function carregarObras() {
                         try {
                             const resp = await fetch('obras.json');
                             if (resp.ok) {
                                 obras = await resp.json();
-                                inicializarQuadros();
+                                inicializarDefinicoesQuadros();
+                                // Não chamamos mais inicializarQuadros() aqui, 
+                                // a função verificarCarregamentoProgressivo fará o trabalho.
                             }
                         } catch (err) {
                             console.error("Erro ao carregar obras:", err);
                         }
                     }
 
-                    function inicializarQuadros() {
-                        /*
-                         * SALA 1
-                         *
-                         * esquerda:
-                         * 1, 2
-                         *
-                         * direita:
-                         * 4, 3
-                         */
+                    function inicializarDefinicoesQuadros() {
+                        const defs = [
+                            // Sala 1
+                            { num: 1, lado: "esquerda", x: -8.82, z: -4 },
+                            { num: 2, lado: "esquerda", x: -8.82, z: -11 },
+                            { num: 3, lado: "direita", x: 8.82, z: -4 },
+                            { num: 4, lado: "direita", x: 8.82, z: -11 },
+                            // Sala 2
+                            { num: 5, lado: "esquerda", x: -8.82, z: -19 },
+                            { num: 6, lado: "esquerda", x: -8.82, z: -26 },
+                            { num: 7, lado: "direita", x: 8.82, z: -19 },
+                            { num: 8, lado: "direita", x: 8.82, z: -26 },
+                            // Sala 3
+                            { num: 9, lado: "esquerda", x: -8.82, z: -34 },
+                            { num: 10, lado: "esquerda", x: -8.82, z: -41 },
+                            { num: 11, lado: "direita", x: 8.82, z: -34 },
+                            { num: 12, lado: "direita", x: 8.82, z: -41 },
+                            // Sala 4
+                            { num: 13, lado: "esquerda", x: -8.82, z: -49 },
+                            { num: 14, lado: "esquerda", x: -8.82, z: -56 },
+                            { num: 15, lado: "direita", x: 8.82, z: -49 },
+                            { num: 16, lado: "direita", x: 8.82, z: -56 },
+                            // Sala 5
+                            { num: 17, lado: "esquerda", x: -8.82, z: -64 },
+                            { num: 18, lado: "esquerda", x: -8.82, z: -71 },
+                            { num: 19, lado: "direita", x: 8.82, z: -64 },
+                            { num: 20, lado: "direita", x: 8.82, z: -71 },
+                            // Sala 6
+                            { num: 21, lado: "esquerda", x: -8.82, z: -78.22 },
+                            { num: 22, lado: "esquerda", x: -8.82, z: -86 },
+                            { num: 23, lado: "direita", x: 8.82, z: -77.44 },
+                            { num: 24, lado: "direita", x: 8.82, z: -86 },
+                            // Sala 7
+                            { num: 25, lado: "esquerda", x: -8.82, z: -94 },
+                            { num: 26, lado: "esquerda", x: -8.82, z: -102.3 },
+                            { num: 27, lado: "direita", x: 8.82, z: -94 },
+                            { num: 28, lado: "direita", x: 8.82, z: -101 },
+                            // Sala 8
+                            { num: 29, lado: "esquerda", x: -8.82, z: -109 },
+                            { num: 30, lado: "esquerda", x: -8.82, z: -116 },
+                            { num: 31, lado: "direita", x: 8.82, z: -109 },
+                            { num: 32, lado: "direita", x: 8.82, z: -116 },
+                            // Sala 9
+                            { num: 33, lado: "fundo", x: 0, z: -124.82 }
+                        ];
+                        definicoesQuadros.push(...defs);
+                    }
 
-                        criarQuadro(1, "esquerda", -8.82, -4);
-                        criarQuadro(2, "esquerda", -8.82, -11);
-                        criarQuadro(3, "direita", 8.82, -4);
-                        criarQuadro(4, "direita", 8.82, -11);
+                    function verificarCarregamentoProgressivo(posZ) {
+                        // Distância de visualização: 3 linhas (salas) para frente.
+                        // Cada sala tem ~15 unidades. 3 salas = ~45 unidades.
+                        // Consideramos carregado tudo que estiver entre [posZ - 50, posZ + 20]
+                        // (Z diminui conforme andamos para o fundo do museu)
+                        const margemFrente = 50;
+                        const margemTras = 20;
 
-                        /*
-                         * SALA 2
-                         *
-                         * esquerda:
-                         * 5, 6
-                         *
-                         * direita:
-                         * 7, 8
-                         */
-
-                        criarQuadro(5, "esquerda", -8.82, -19);
-                        criarQuadro(6, "esquerda", -8.82, -26);
-                        criarQuadro(7, "direita", 8.82, -19);
-                        criarQuadro(8, "direita", 8.82, -26);
-
-                        /*
-                         * SALA 3
-                         *
-                         * esquerda:
-                         * 9, 10
-                         *
-                         * direita:
-                         * 11, 12
-                         */
-
-                        criarQuadro(9, "esquerda", -8.82, -34);
-                        criarQuadro(10, "esquerda", -8.82, -41);
-                        criarQuadro(11, "direita", 8.82, -34);
-                        criarQuadro(12, "direita", 8.82, -41);
-
-                        /*
-                         * SALA 4
-                         *
-                         * esquerda:
-                         * 13, 14
-                         *
-                         * direita:
-                         * 15, 16
-                         */
-
-                        criarQuadro(13, "esquerda", -8.82, -49);
-                        criarQuadro(14, "esquerda", -8.82, -56);
-                        criarQuadro(15, "direita", 8.82, -49);
-                        criarQuadro(16, "direita", 8.82, -56);
-
-                        /*
-                         * SALA 5
-                         *
-                         * esquerda:
-                         * 17, 18
-                         *
-                         * direita:
-                         * 19, 20
-                         */
-
-                        criarQuadro(17, "esquerda", -8.82, -64);
-                        criarQuadro(18, "esquerda", -8.82, -71);
-                        criarQuadro(19, "direita", 8.82, -64);
-                        criarQuadro(20, "direita", 8.82, -71);
-
-                        /*
-                         * SALA 6
-                         *
-                         * esquerda:
-                         * 21, 22
-                         *
-                         * direita:
-                         * 23, 24
-                         */
-
-                        criarQuadro(21, "esquerda", -8.82, -79);
-                        criarQuadro(22, "esquerda", -8.82, -86);
-                        criarQuadro(23, "direita", 8.82, -79);
-                        criarQuadro(24, "direita", 8.82, -86);
-
-                        /*
-                         * SALA 7
-                         *
-                         * esquerda:
-                         * 25, 26
-                         *
-                         * direita:
-                         * 27, 28
-                         */
-
-                        criarQuadro(25, "esquerda", -8.82, -94);
-                        criarQuadro(26, "esquerda", -8.82, -101);
-                        criarQuadro(27, "direita", 8.82, -94);
-                        criarQuadro(28, "direita", 8.82, -101);
-
-                        /*
-                         * SALA 8
-                         *
-                         * esquerda:
-                         * 29, 30
-                         *
-                         * direita:
-                         * 31, 32
-                         *
-                         * fundo:
-                         * 33
-                         */
-
-                        criarQuadro(29, "esquerda", -8.82, -109);
-                        criarQuadro(30, "esquerda", -8.82, -116);
-                        criarQuadro(31, "direita", 8.82, -109);
-                        criarQuadro(32, "direita", 8.82, -116);
-                        criarQuadro(33, "fundo", 0, -124.82);
+                        definicoesQuadros.forEach(def => {
+                            if (!quadrosCriados.has(def.num)) {
+                                // O player começa em Z=4. Conforme anda, Z vai para -120.
+                                // Um quadro em Z=-20 deve carregar quando o player chegar em Z = -20 + 50 = 30.
+                                if (def.z >= posZ - margemFrente && def.z <= posZ + margemTras) {
+                                    criarQuadro(def.num, def.lado, def.x, def.z);
+                                    quadrosCriados.add(def.num);
+                                }
+                            }
+                        });
                     }
 
                     carregarObras();
@@ -1455,7 +1504,7 @@
 
                         grupo.setAttribute(
                             "position",
-                            `${x} 3.8 ${z}`
+                            `${x} 4.2 ${z}`
                         );
 
 
@@ -1494,7 +1543,7 @@
                             if (numero === 33) {
                                 grupo.setAttribute(
                                     "position",
-                                    "0 3.8 -124.82"
+                                    "0 4.2 -124.82"
                                 );
                             }
 
@@ -1529,6 +1578,14 @@
                             "color",
                             "#3d2b1f" // Marrom madeira escuro
                         );
+
+                        // Torna a moldura clicável
+                        molduraExterna.classList.add("interactable");
+                        molduraExterna.setAttribute("data-numero", numero);
+                        molduraExterna.setAttribute("data-lado", lado);
+                        molduraExterna.setAttribute("data-titulo", obra.titulo);
+                        molduraExterna.setAttribute("data-autor", obra.autor);
+                        molduraExterna.setAttribute("data-tecnica", obra.tecnica);
 
                         grupo.appendChild(
                             molduraExterna
@@ -1568,6 +1625,14 @@
                             "#f5f5dc" // Bege / Off-white
                         );
 
+                        // Torna o passe-partout clicável
+                        passePartout.classList.add("interactable");
+                        passePartout.setAttribute("data-numero", numero);
+                        passePartout.setAttribute("data-lado", lado);
+                        passePartout.setAttribute("data-titulo", obra.titulo);
+                        passePartout.setAttribute("data-autor", obra.autor);
+                        passePartout.setAttribute("data-tecnica", obra.tecnica);
+
                         grupo.appendChild(
                             passePartout
                         );
@@ -1581,20 +1646,9 @@
                                 "a-plane"
                             );
 
-                        // Dimensões máximas permitidas para a imagem dentro do passe-partout
-                        let MAX_WIDTH = 4.35;
-                        let MAX_HEIGHT = 3.25;
-
-                        // Aumenta o tamanho da tela 33 em 60% e ajusta molduras
-                        if (numero === 33) {
-                            MAX_WIDTH *= 1.6;
-                            MAX_HEIGHT *= 1.6;
-                            
-                            molduraExterna.setAttribute("width", MAX_WIDTH + 0.85);
-                            molduraExterna.setAttribute("height", MAX_HEIGHT + 0.85);
-                            passePartout.setAttribute("width", MAX_WIDTH + 0.25);
-                            passePartout.setAttribute("height", MAX_HEIGHT + 0.25);
-                        }
+                        // Dimensões máximas permitidas para a imagem dentro do passe-partout (aumentadas em 70%)
+                        let MAX_WIDTH = 4.35 * 1.7;
+                        let MAX_HEIGHT = 3.25 * 1.7;
 
                         // Inicializa com dimensões máximas (evita que o plano fique invisível antes de carregar)
                         imagem.setAttribute("width", MAX_WIDTH);
@@ -1632,9 +1686,9 @@
                                     passePartout.setAttribute("width", finalWidth + 0.25);
                                     passePartout.setAttribute("height", finalHeight + 0.25);
 
-                                    // Ajusta a Moldura Externa (margem de ~0.3 em relação ao passe-partout)
-                                    molduraExterna.setAttribute("width", finalWidth + 0.85);
-                                    molduraExterna.setAttribute("height", finalHeight + 0.85);
+                        // Ajusta a Moldura Externa (margem maior para quadros maiores)
+                                    molduraExterna.setAttribute("width", finalWidth + 1.2);
+                                    molduraExterna.setAttribute("height", finalHeight + 1.2);
                                 }
                             };
 
@@ -1663,6 +1717,7 @@
                         // Adiciona classes e dados para interação
                         imagem.classList.add("interactable");
                         imagem.setAttribute("data-numero", numero);
+                        imagem.setAttribute("data-lado", lado);
                         imagem.setAttribute("data-titulo", obra.titulo);
                         imagem.setAttribute("data-autor", obra.autor);
                         imagem.setAttribute("data-tecnica", obra.tecnica);
@@ -1802,6 +1857,13 @@
                                 const isEven = currentID % 2 === 0;
 
                                 if (key === "a" || key === "arrowleft") {
+                                    // Transição Especial: 31 (Direita) -> 32 (Direita)
+                                    if (currentID === 31) {
+                                        pos.z = quadrosZ[15]; // Z do quadro 32
+                                        player.setAttribute("position", pos);
+                                        return;
+                                    }
+
                                     // Transição Especial: 32 (Direita) -> 33 (Fundo)
                                     if (currentID === 32) {
                                         targetRotation = 0; // Gira para frente
@@ -1812,7 +1874,11 @@
                                         return;
                                     }
 
-                                    // Regra: Ímpar (Esq -> Gira), Par (Esq -> Navega)
+                                    // Tenta navegar lateralmente primeiro se estiver olhando para um lado
+                                    // Isso cobre o pedido de 4->3 e também generaliza para outros pares
+                                    let dirNav = (Math.abs(normalizedRot - 90) < 1) ? -1 : 1;
+                                    if (navegarEntreQuadros(dirNav)) return;
+
                                     if (isOdd) {
                                         targetRotation += 90;
                                         isRotating = true;
@@ -1820,27 +1886,30 @@
                                             centralizarNoQuadro();
                                         }
                                     } else if (isEven) {
-                                        let dir = (Math.abs(normalizedRot - 90) < 1) ? -1 : 1;
-                                        if (!navegarEntreQuadros(dir)) {
-                                            targetRotation += 90;
-                                            isRotating = true;
-                                            if (Math.abs(targetRotation / 90) % 2 !== 0) {
-                                                centralizarNoQuadro();
-                                            }
+                                        targetRotation += 90;
+                                        isRotating = true;
+                                        if (Math.abs(targetRotation / 90) % 2 !== 0) {
+                                            centralizarNoQuadro();
                                         }
                                     }
                                 } else if (key === "d" || key === "arrowright") {
-                                    // Transição Especial: 32 (Direita) -> 33 (Fundo)
+                                    // Tenta navegar lateralmente primeiro se estiver olhando para um lado
+                                    let dirNav = (Math.abs(normalizedRot - 90) < 1) ? 1 : -1;
+                                    if (navegarEntreQuadros(dirNav)) return;
+
+                                    // Transição Especial: 32 (Direita) -> 31 (Direita)
                                     if (currentID === 32) {
-                                        targetRotation = 0; // Gira para frente
-                                        isRotating = true;
-                                        pos.z = posFundoZ; // Posição para ver o fundo
-                                        pos.x = 0; // Alinha com o quadro 33
+                                        pos.z = quadrosZ[14]; // Z do quadro 31
                                         player.setAttribute("position", pos);
                                         return;
                                     }
 
-                                    // Regra: Par (Dir -> Gira), Ímpar (Dir -> Navega)
+                                    // Transição Especial: 32 (Direita) -> 33 (Fundo)
+                                    // Removido o atalho A -> 33 para o D, mas mantendo a lógica se necessário
+                                    // Na verdade, o pedido original não falava de 32 -> Direita -> 33.
+                                    // O pedido original para 32 foi: DIREITA VAI PRA 31.
+                                    // O pedido original para 33 foi: DIREITA VAI PRA 23.
+
                                     if (isEven) {
                                         targetRotation -= 90;
                                         isRotating = true;
@@ -1848,13 +1917,10 @@
                                             centralizarNoQuadro();
                                         }
                                     } else if (isOdd) {
-                                        let dir = (Math.abs(normalizedRot - 90) < 1) ? 1 : -1;
-                                        if (!navegarEntreQuadros(dir)) {
-                                            targetRotation -= 90;
-                                            isRotating = true;
-                                            if (Math.abs(targetRotation / 90) % 2 !== 0) {
-                                                centralizarNoQuadro();
-                                            }
+                                        targetRotation -= 90;
+                                        isRotating = true;
+                                        if (Math.abs(targetRotation / 90) % 2 !== 0) {
+                                            centralizarNoQuadro();
                                         }
                                     }
                                 } else if (key === "s" || key === "arrowdown") {
@@ -1908,10 +1974,11 @@
                                             pos.x = 0; // Alinha com o centro
                                             player.setAttribute("position", pos);
                                         } else {
-                                            // Se já estiver no centro ou direita do fundo, vai para a lateral direita
+                                            // Transição Especial: 33 (Fundo) -> 32 (Direita)
+                                            // Z do quadro 32: -116
                                             targetRotation = 270; // Gira para direita
                                             isRotating = true;
-                                            pos.z = -116; // Z do quadro 31
+                                            pos.z = -116; // Z do quadro 32
                                             pos.x = 0; // Volta para o trilho central
                                             player.setAttribute("position", pos);
                                         }
@@ -2037,21 +2104,27 @@
                         
                         btn.addEventListener('touchstart', (e) => {
                             e.preventDefault();
+                            e.stopPropagation();
                             teclas[key] = true;
                             processarComando(key);
-                        });
+                        }, { passive: false });
 
                         btn.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                             teclas[key] = true;
                             processarComando(key);
                         });
                         
                         btn.addEventListener('touchend', (e) => {
                             e.preventDefault();
+                            e.stopPropagation();
                             teclas[key] = false;
-                        });
+                        }, { passive: false });
 
                         btn.addEventListener('mouseup', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                             teclas[key] = false;
                         });
 
@@ -2077,11 +2150,14 @@
                     const overlayAuthor = document.getElementById("overlay-author");
                     const overlayTech = document.getElementById("overlay-tech");
                     const closeOverlay = document.getElementById("close-overlay");
+                    const overlayPrev = document.getElementById("overlay-prev");
+                    const overlayNext = document.getElementById("overlay-next");
 
                     // RASTREAMENTO DE OBRAS VISTAS
                     let obrasVistas = JSON.parse(localStorage.getItem('obrasVistas') || '[]');
                     let totalObras = 0;
                     let listaObras = [];
+                    let currentObraId = null;
 
                     async function initChecklist() {
                         const resp = await fetch('obras.json');
@@ -2134,17 +2210,24 @@
                     };
 
                     initChecklist();
+                    document.addEventListener('touchstart', function (e) {
+                        // Impedir comportamento padrão de toque duplo que pode disparar fullscreen em alguns navegadores
+                        if (e.touches.length > 1) {
+                            e.preventDefault();
+                        }
+                        
+                        if (e.target && e.target.closest && (e.target.closest('.mobile-btn') || e.target.closest('#checklist-trigger') || e.target.closest('#checklist-panel'))) {
+                            // Deixa o evento seguir para os controles
+                        } else {
+                            // Se for toque na área da cena, podemos opcionalmente prevenir comportamentos se necessário,
+                            // mas o A-Frame lida com isso.
+                        }
+                    }, { passive: true });
 
                     document.addEventListener('mouseenter', function (evt) {
+                        if (evt.target && evt.target.closest && evt.target.closest('#mobile-controls')) return;
                         if (evt.target.classList && evt.target.classList.contains('interactable')) {
-                            const titulo = evt.target.getAttribute('data-titulo');
-                            const autor = evt.target.getAttribute('data-autor');
-
-                            hudTitle.textContent = titulo;
-                            hudAuthor.textContent = autor;
-                            hud.style.display = 'block';
-
-                            // Feedback visual no cursor
+                            // Feedback visual no cursor ao passar sobre a obra
                             document.getElementById('cursor').setAttribute('color', '#ffcc00');
                             document.getElementById('cursor').setAttribute('scale', '0.8 0.8 0.8');
                         }
@@ -2152,65 +2235,137 @@
 
                     document.addEventListener('mouseleave', function (evt) {
                         if (evt.target.classList && evt.target.classList.contains('interactable')) {
-                            hud.style.display = 'none';
-
                             // Volta cursor ao normal
                             document.getElementById('cursor').setAttribute('color', '#fff');
                             document.getElementById('cursor').setAttribute('scale', '0.5 0.5 0.5');
                         }
                     }, true);
 
+                    let clickTimer = null;
                     document.addEventListener('click', function (evt) {
+                        // Impedir que cliques nos controles mobile disparem a abertura de obras
+                        if (evt.target && evt.target.closest && evt.target.closest('#mobile-controls')) {
+                            return;
+                        }
+
+                        // Impedir que clique nos botões de navegação lateral feche o overlay
+                        if (evt.target && evt.target.closest && evt.target.closest('.nav-btn')) {
+                            return;
+                        }
+                        
                         if (evt.target.classList && evt.target.classList.contains('interactable')) {
                             const numero = evt.target.getAttribute('data-numero');
-                            const titulo = evt.target.getAttribute('data-titulo');
-                            const autor = evt.target.getAttribute('data-autor');
-                            const tecnica = evt.target.getAttribute('data-tecnica');
+                            const lado = evt.target.getAttribute('data-lado');
 
-                            overlayImg.src = `tela${numero}.jpg`;
-                            overlayTitle.textContent = titulo;
-                            overlayAuthor.textContent = autor;
-                            overlayTech.textContent = tecnica;
-
-                            marcarComoVista(numero);
-
-                            overlay.classList.add('active');
-
-                            // Entrar em tela cheia se possível
-                            if (document.documentElement.requestFullscreen) {
-                                document.documentElement.requestFullscreen();
-                            } else if (document.documentElement.mozRequestFullScreen) {
-                                document.documentElement.mozRequestFullScreen();
-                            } else if (document.documentElement.webkitRequestFullscreen) {
-                                document.documentElement.webkitRequestFullscreen();
-                            } else if (document.documentElement.msRequestFullscreen) {
-                                document.documentElement.msRequestFullscreen();
+                            if (clickTimer) {
+                                // Double click detected
+                                clearTimeout(clickTimer);
+                                clickTimer = null;
+                                // Girar 90 graus conforme o lado
+                                girar90Graus(lado);
+                            } else {
+                                clickTimer = setTimeout(() => {
+                                    clickTimer = null;
+                                    // Single click: ir para a tela do lado (navegar entre quadros)
+                                    // Se estiver no fundo, talvez abrir a obra ou navegar
+                                    if (lado === 'fundo') {
+                                        abrirObra(numero);
+                                    } else {
+                                        const direcao = lado === 'esquerda' ? -1 : 1;
+                                        const moveu = navegarEntreQuadros(direcao);
+                                        if (!moveu) {
+                                            abrirObra(numero);
+                                        }
+                                    }
+                                }, 300);
                             }
                         }
                     }, true);
 
+                    function girar90Graus(lado) {
+                        let novaRotacao = targetRotation;
+                        if (lado === 'esquerda') {
+                            novaRotacao += 90;
+                        } else if (lado === 'direita') {
+                            novaRotacao -= 90;
+                        } else if (lado === 'fundo') {
+                            // No fundo, talvez girar 180 ou algo assim, mas o pedido diz 90
+                            novaRotacao += 90; 
+                        }
+                        
+                        targetRotation = novaRotacao;
+                        isRotating = true;
+                    }
+
+                    function abrirObra(id) {
+                        const obra = listaObras.find(o => parseInt(o.id) === parseInt(id));
+                        if (!obra) return;
+
+                        currentObraId = parseInt(id);
+
+                        overlayImg.src = `tela${id}.jpg`;
+                        overlayTitle.textContent = obra.titulo;
+                        overlayAuthor.textContent = obra.autor;
+                        overlayTech.textContent = obra.tecnica;
+
+                        marcarComoVista(id);
+                        overlay.classList.add('active');
+                    }
+
+                    function navegarObra(direcao) {
+                        if (currentObraId === null || listaObras.length === 0) return;
+
+                        // Encontrar o índice atual na listaObras (que segue a ordem do JSON/admin)
+                        const currentIndex = listaObras.findIndex(o => parseInt(o.id) === currentObraId);
+                        let nextIndex;
+
+                        if (direcao === 'next') {
+                            nextIndex = (currentIndex + 1) % listaObras.length;
+                        } else {
+                            nextIndex = (currentIndex - 1 + listaObras.length) % listaObras.length;
+                        }
+
+                        const proximaObra = listaObras[nextIndex];
+                        abrirObra(proximaObra.id);
+                    }
+
                     function fecharOverlay() {
                         overlay.classList.remove('active');
-                        // Sair da tela cheia se estiver nela
-                        if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
-                            if (document.exitFullscreen) {
-                                document.exitFullscreen();
-                            } else if (document.mozCancelFullScreen) {
-                                document.mozCancelFullScreen();
-                            } else if (document.webkitExitFullscreen) {
-                                document.webkitExitFullscreen();
-                            } else if (document.msExitFullscreen) {
-                                document.msExitFullscreen();
-                            }
-                        }
+                        currentObraId = null;
                     }
 
                     closeOverlay.addEventListener('click', fecharOverlay);
-
-                    // Fechar overlay com ESC
-                    window.addEventListener('keydown', function(e) {
-                        if (e.key === 'Escape') {
+                    
+                    // Ajuste no clique do overlay para fechar apenas se clicar fora da imagem/info/botões
+                    overlay.addEventListener('click', function(e) {
+                        if (e.target === overlay) {
                             fecharOverlay();
+                        }
+                    });
+
+                    overlayPrev.onclick = (e) => {
+                        e.stopPropagation();
+                        navegarObra('prev');
+                    };
+
+                    overlayNext.onclick = (e) => {
+                        e.stopPropagation();
+                        navegarObra('next');
+                    };
+
+                    // Navegação por teclado (Setas e Esc)
+                    window.addEventListener('keydown', function(e) {
+                        if (overlay.classList.contains('active')) {
+                            if (e.key === 'ArrowRight') {
+                                navegarObra('next');
+                            } else if (e.key === 'ArrowLeft') {
+                                navegarObra('prev');
+                            } else if (e.key === 'Escape') {
+                                fecharOverlay();
+                            } else {
+                                // Qualquer outra tecla fecha o overlay (conforme comportamento original)
+                                fecharOverlay();
+                            }
                         }
                     });
 
@@ -2380,6 +2535,9 @@
                             pos
                         );
 
+                        // Carregamento progressivo de quadros
+                        verificarCarregamentoProgressivo(pos.z);
+
 
                         /*
                          * Próximo frame.
@@ -2401,34 +2559,7 @@
 
 
 
-                    /* =================================================
-                       FINALIZA CARREGAMENTO
-                       ================================================= */
-
-                    const loading =
-                        document.getElementById(
-                            "loading"
-                        );
-
-
-                    if (loading) {
-
-                        loading.style.opacity =
-                            "0";
-
-
-                        setTimeout(
-                            function () {
-
-                                loading.style.display =
-                                    "none";
-
-                            },
-                            700
-                        );
-
-                    }
-
+                    finalizarCarregamento();
 
                     console.log(
                         "Museu Virtual V2.1 iniciado."
@@ -2439,8 +2570,7 @@
                         "18 quadros configurados."
                     );
 
-                }
-            );
+            }
 
 
 
